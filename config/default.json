@@ -1,3 +1,4 @@
 {
-  "mongoURI": "mongodb+srv://peterkaa:adam123@cluster0-1spa0.mongodb.net/test?retryWrites=true&w=majority"
+  "mongoURI": "mongodb+srv://peterkaa:adam123@cluster0-1spa0.mongodb.net/test?retryWrites=true&w=majority",
+  "jwtSecret": "project2secret"
 }

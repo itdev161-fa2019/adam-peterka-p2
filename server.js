@@ -2,8 +2,9 @@ import express from "express";
 import connectDatabase from "./config/db";
 import { check, validationResult } from "express-validator";
 import cors from "cors";
+import jwt from "jsonwebtoken";
+import config from "config";
 import Income from "./models/Income";
-import { userInfo } from "os";
 
 // init express app
 const app = express();
@@ -64,7 +65,23 @@ app.post(
 
         //Save to db and return
         await income.save();
-        res.send("Income successfully created");
+
+        //Generate and retuurn a jwt token
+        const payload = {
+          income: {
+            id: income.id
+          }
+        };
+
+        jwt.sign(
+          payload,
+          config.get("jwtSecret"),
+          { expiresIn: "10hr" },
+          (err, token) => {
+            if (err) throw err;
+            res.json({ token: token });
+          }
+        );
       } catch (error) {
         res.status(500).send("Server error");
       }
