@@ -2,6 +2,9 @@ import express from "express";
 import connectDatabase from "./config/db";
 import { check, validationResult } from "express-validator";
 import cors from "cors";
+import jwt from "jsonwebtoken";
+import config from "config";
+import Income from "./models/Income";
 
 // init express app
 const app = express();
@@ -39,12 +42,49 @@ app.post(
       .isEmpty()
       .isDecimal()
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
     } else {
-      return res.send(req.body);
+      const { monthYear, weeklyIncome } = req.body;
+      try {
+        //check if income exists
+        let income = await Income.findOne({ monthYear: monthYear });
+        if (income) {
+          return res
+            .status(400)
+            .json({ errors: [{ msg: "Income already exists" }] });
+        }
+
+        //Create new income
+        income = new Income({
+          monthYear: monthYear,
+          weeklyIncome: weeklyIncome
+        });
+
+        //Save to db and return
+        await income.save();
+
+        //Generate and retuurn a jwt token
+        const payload = {
+          income: {
+            id: income.id
+          }
+        };
+
+        jwt.sign(
+          payload,
+          config.get("jwtSecret"),
+          { expiresIn: "10hr" },
+          (err, token) => {
+            if (err) throw err;
+            res.json({ token: token });
+          }
+        );
+      } catch (error) {
+        res.status(500).send("Server error");
+      }
     }
   }
 );
