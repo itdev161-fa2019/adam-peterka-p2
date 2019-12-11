@@ -2,6 +2,8 @@ import express from "express";
 import connectDatabase from "./config/db";
 import { check, validationResult } from "express-validator";
 import cors from "cors";
+import Income from "./models/Income";
+import { userInfo } from "os";
 
 // init express app
 const app = express();
@@ -39,12 +41,33 @@ app.post(
       .isEmpty()
       .isDecimal()
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
     } else {
-      return res.send(req.body);
+      const { monthYear, weeklyIncome } = req.body;
+      try {
+        //check if income exists
+        let income = await Income.findOne({ monthYear: monthYear });
+        if (income) {
+          return res
+            .status(400)
+            .json({ errors: [{ msg: "Income already exists" }] });
+        }
+
+        //Create new income
+        income = new Income({
+          monthYear: monthYear,
+          weeklyIncome: weeklyIncome
+        });
+
+        //Save to db and return
+        await income.save();
+        res.send("Income successfully created");
+      } catch (error) {
+        res.status(500).send("Server error");
+      }
     }
   }
 );
