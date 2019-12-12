@@ -1,7 +1,9 @@
 import React from "react";
-import "./App.css";
 import axios from "axios";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import "./App.css";
+import Create from "./components/Create/Create";
+import View from "./components/View/View";
 
 class App extends React.Component {
   state = {
@@ -44,8 +46,8 @@ class App extends React.Component {
               {this.state.data}
             </Route>
             <Switch>
-              <Route path="/create">Create New</Route>
-              <Route path="/view">View</Route>
+              <Route exact path="/create" component={Create} />
+              <Route exact path="/view" component={View} />
             </Switch>
           </main>
         </div>
