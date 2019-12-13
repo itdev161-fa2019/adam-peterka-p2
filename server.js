@@ -5,6 +5,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import config from "config";
 import Income from "./models/Income";
+import auth from "./middleware/auth";
 
 // init express app
 const app = express();
@@ -67,27 +68,81 @@ app.post(
         await income.save();
 
         //Generate and retuurn a jwt token
-        const payload = {
-          income: {
-            id: income.id
-          }
-        };
-
-        jwt.sign(
-          payload,
-          config.get("jwtSecret"),
-          { expiresIn: "10hr" },
-          (err, token) => {
-            if (err) throw err;
-            res.json({ token: token });
-          }
-        );
+        returnToken(income, res);
       } catch (error) {
         res.status(500).send("Server error");
       }
     }
   }
 );
+
+/**
+ * @route GET api/auth
+ * @desc Authenticate income
+ */
+app.get("/api/auth", auth, async (req, res) => {
+  try {
+    const income = await Income.findById(req.income.id);
+    res.status(200).json(income);
+  } catch (error) {
+    res.status(500).send("Unknown server error");
+  }
+});
+
+/**
+ * @route POST api/view
+ * @desc View income
+ */
+app.post(
+  "/api/view",
+  [
+    check("monthYear", "Please enter a valid month and year")
+      .not()
+      .isEmpty()
+      .isLength({ min: 6 })
+      .isLength({ max: 7 })
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    } else {
+      const { monthYear } = req.body;
+      try {
+        //Check if income exists
+        let income = await Income.findOne({ monthYear: monthYear });
+        if (!income) {
+          return res
+            .status(400)
+            .json({ errors: [{ msg: "Invalid month and year" }] });
+        }
+
+        // Generate and return a JWT token
+        returnToken(income, res);
+      } catch (error) {
+        res.status(500).send("Server Error");
+      }
+    }
+  }
+);
+
+const returnToken = (income, res) => {
+  const payload = {
+    income: {
+      id: income.id
+    }
+  };
+
+  jwt.sign(
+    payload,
+    config.get("jwtSecret"),
+    { expiresIn: "10hr" },
+    (err, token) => {
+      if (err) throw err;
+      res.json({ token: token });
+    }
+  );
+};
 
 //connection listener
 const port = 5000;
