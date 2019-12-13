@@ -21,6 +21,25 @@ app.use(
   })
 );
 
+// Utility Functions
+const returnToken = (income, res) => {
+  const payload = {
+    income: {
+      id: income.id
+    }
+  };
+
+  jwt.sign(
+    payload,
+    config.get("jwtSecret"),
+    { expiresIn: "10hr" },
+    (err, token) => {
+      if (err) throw err;
+      res.json({ token: token });
+    }
+  );
+};
+
 // API Endpoints
 app.get("/", (req, res) =>
   res.send("http get request sent to root api endpoint")
@@ -126,23 +145,27 @@ app.post(
   }
 );
 
-const returnToken = (income, res) => {
-  const payload = {
-    income: {
-      id: income.id
-    }
-  };
+/**
+ * @route DELETE api/incomes/:id
+ * @desc Delete an Income
+ */
+app.delete("/api/incomes/:id", async (req, res) => {
+  try {
+    const income = await Income.findOne(req.params.monthYear);
 
-  jwt.sign(
-    payload,
-    config.get("jwtSecret"),
-    { expiresIn: "10hr" },
-    (err, token) => {
-      if (err) throw err;
-      res.json({ token: token });
+    // Make sure the income was found
+    if (!income) {
+      return res.status(404).json({ msg: "Income not found" });
     }
-  );
-};
+
+    await income.remove();
+
+    res.json({ msg: "Income removed" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
 
 //connection listener
 const port = 5000;
