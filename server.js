@@ -21,6 +21,25 @@ app.use(
   })
 );
 
+// Utility Functions
+const returnToken = (income, res) => {
+  const payload = {
+    income: {
+      id: income.id
+    }
+  };
+
+  jwt.sign(
+    payload,
+    config.get("jwtSecret"),
+    { expiresIn: "10hr" },
+    (err, token) => {
+      if (err) throw err;
+      res.json({ token: token });
+    }
+  );
+};
+
 // API Endpoints
 app.get("/", (req, res) =>
   res.send("http get request sent to root api endpoint")
@@ -90,6 +109,21 @@ app.get("/api/auth", auth, async (req, res) => {
 });
 
 /**
+ * @route DELETE api/delete
+ * @desc Delete income
+ */
+app.delete("/api/delete", auth, async (req, res) => {
+  try {
+    const income = await Income.findById(req.income.id);
+    await income.remove();
+
+    res.json({ msg: "income removed" });
+  } catch (error) {
+    res.status(500).send("Unknown server error");
+  }
+});
+
+/**
  * @route POST api/view
  * @desc View income
  */
@@ -125,24 +159,6 @@ app.post(
     }
   }
 );
-
-const returnToken = (income, res) => {
-  const payload = {
-    income: {
-      id: income.id
-    }
-  };
-
-  jwt.sign(
-    payload,
-    config.get("jwtSecret"),
-    { expiresIn: "10hr" },
-    (err, token) => {
-      if (err) throw err;
-      res.json({ token: token });
-    }
-  );
-};
 
 //connection listener
 const port = 5000;

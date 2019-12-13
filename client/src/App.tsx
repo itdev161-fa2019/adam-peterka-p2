@@ -57,7 +57,40 @@ class App extends React.Component {
           localStorage.removeItem("income");
           localStorage.removeItem("monthYear");
           this.setState({ income: null, weeklyIncome: null });
-          console.error(`Error logging in: ${error}`);
+          console.error(`Error viewing in: ${error}`);
+        });
+    }
+  };
+
+  deleteIncome = () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      localStorage.removeItem("income");
+      localStorage.removeItem("monthYear");
+      this.setState({ income: null, weeklyIncome: null });
+    }
+
+    if (token) {
+      const config = {
+        headers: {
+          "x-auth-token": token
+        }
+      };
+      axios
+        .delete("http://localhost:5000/api/delete", config)
+        .then(response => {
+          localStorage.removeItem("income");
+          localStorage.removeItem("monthYear");
+          localStorage.removeItem("token");
+          this.setState({ income: null, monthYear: null, token: null });
+          console.log(response);
+        })
+        .catch(error => {
+          localStorage.removeItem("income");
+          localStorage.removeItem("monthYear");
+          this.setState({ income: null, monthYear: null });
+          console.error(`Error finding in: ${error}`);
         });
     }
   };
@@ -72,7 +105,8 @@ class App extends React.Component {
   render() {
     let { income, monthYear, data } = this.state;
     const authProps = {
-      authenticateIncome: this.authenticateIncome
+      authenticateIncome: this.authenticateIncome,
+      deleteIncome: this.deleteIncome
     };
 
     return (
@@ -93,7 +127,7 @@ class App extends React.Component {
                     Close View
                   </Link>
                 ) : (
-                  <Link to="/view">View</Link>
+                  <Link to="/view">View/Delete</Link>
                 )}
               </li>
             </ul>
