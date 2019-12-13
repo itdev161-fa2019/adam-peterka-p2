@@ -25,16 +25,16 @@ class App extends React.Component {
         console.error(`Error fetching data: ${error}`);
       });
 
-      this.authenticateIncome();
+    this.authenticateIncome();
   }
 
   authenticateIncome = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      localStorage.removeItem('income');
-      localStorage.removeItem('monthYear');
-      this.setState({ income: null, weeklyIncome: null});
+      localStorage.removeItem("income");
+      localStorage.removeItem("monthYear");
+      this.setState({ income: null, weeklyIncome: null });
     }
 
     if (token) {
@@ -42,34 +42,38 @@ class App extends React.Component {
         headers: {
           "x-auth-token": token
         }
-      }
-      axios.get('http://localhost:5000/api/auth', config)
-        .then((response) => {
-          localStorage.setItem('income', response.data.weeklyIncome);
+      };
+      axios
+        .get("http://localhost:5000/api/auth", config)
+        .then(response => {
+          localStorage.setItem("income", response.data.weeklyIncome);
           localStorage.setItem("monthYear", response.data.monthYear);
-          this.setState({ income: response.data.weeklyIncome, monthYear: response.data.monthYear });
+          this.setState({
+            income: response.data.weeklyIncome,
+            monthYear: response.data.monthYear
+          });
         })
-        .catch((error) => {
-          localStorage.removeItem('income');
-          localStorage.removeItem('monthYear');
-          this.setState({ income: null, weeklyIncome: null});
-          console.error{`Error logging in: ${error}`};
-        })
+        .catch(error => {
+          localStorage.removeItem("income");
+          localStorage.removeItem("monthYear");
+          this.setState({ income: null, weeklyIncome: null });
+          console.error(`Error logging in: ${error}`);
+        });
     }
-  }
+  };
 
   closeView = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('income');
-    localStorage.removeItem('monthYear');
-    this.setState({ income: null, monthYear: null, token: null});
-  }
+    localStorage.removeItem("token");
+    localStorage.removeItem("income");
+    localStorage.removeItem("monthYear");
+    this.setState({ income: null, monthYear: null, token: null });
+  };
 
   render() {
     let { income, monthYear, data } = this.state;
     const authProps = {
       authenticateIncome: this.authenticateIncome
-    }
+    };
 
     return (
       <Router>
@@ -84,34 +88,40 @@ class App extends React.Component {
                 <Link to="/create">Create New</Link>
               </li>
               <li>
-                {income ?
-                  <Link to="" onClick={this.closeView}>Close View</Link> :
+                {income ? (
+                  <Link to="" onClick={this.closeView}>
+                    Close View
+                  </Link>
+                ) : (
                   <Link to="/view">View</Link>
-                }
+                )}
               </li>
             </ul>
           </header>
           <main>
             <Route exact path="/">
-              {income ?
+              {income ? (
                 <React.Fragment>
                   <div>Month and Year: {monthYear}.</div>
                   <div>Weekly Income: {income}</div>
                   <div>{data}</div>
-                </React.Fragment> :
+                </React.Fragment>
+              ) : (
                 <React.Fragment>
                   Please Create a new Income or View an existing
                 </React.Fragment>
-              }
+              )}
             </Route>
             <Switch>
-              <Route 
-                exact path="/create"
+              <Route
+                exact
+                path="/create"
                 render={() => <Create {...authProps} />}
               />
-              <Route 
-                exact path="/view" 
-                render={() => <View {...authProps} />} 
+              <Route
+                exact
+                path="/view"
+                render={() => <View {...authProps} />}
               />
             </Switch>
           </main>
