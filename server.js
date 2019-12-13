@@ -109,6 +109,21 @@ app.get("/api/auth", auth, async (req, res) => {
 });
 
 /**
+ * @route DELETE api/delete
+ * @desc Delete income
+ */
+app.delete("/api/delete", auth, async (req, res) => {
+  try {
+    const income = await Income.findById(req.income.id);
+    await income.remove();
+
+    res.json({ msg: "income removed" });
+  } catch (error) {
+    res.status(500).send("Unknown server error");
+  }
+});
+
+/**
  * @route POST api/view
  * @desc View income
  */
@@ -138,43 +153,6 @@ app.post(
 
         // Generate and return a JWT token
         returnToken(income, res);
-      } catch (error) {
-        res.status(500).send("Server Error");
-      }
-    }
-  }
-);
-
-/**
- * @route DELETE api/delete
- * @desc Delete an Income
- */
-app.delete(
-  "/api/delete",
-  [
-    check("monthYear", "Please enter a valid month and year")
-      .not()
-      .isEmpty()
-      .isLength({ min: 6 })
-      .isLength({ max: 7 })
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array() });
-    } else {
-      const { monthYear } = req.body;
-      try {
-        //Check if income exists
-        let income = await Income.findOne({ monthYear: monthYear });
-        if (!income) {
-          return res
-            .status(400)
-            .json({ errors: [{ msg: "Invalid month and year" }] });
-        }
-
-        await income.remove();
-        res.json({ msg: "Income Removed" });
       } catch (error) {
         res.status(500).send("Server Error");
       }
