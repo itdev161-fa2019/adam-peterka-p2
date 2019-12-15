@@ -5,6 +5,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import config from "config";
 import Income from "./models/Income";
+import Bill from "./models/Bill";
 import auth from "./middleware/auth";
 
 // init express app
@@ -45,6 +46,7 @@ app.get("/", (req, res) =>
   res.send("http get request sent to root api endpoint")
 );
 
+// Income Enpoints
 /**
  * @route POST api/incomes
  * @desc Create Income
@@ -159,6 +161,139 @@ app.post(
     }
   }
 );
+
+// Bill endpoints
+/**
+ * @route POST api/bills
+ * @desc create Bill
+ */
+app.post(
+  "/api/bills",
+  [
+    auth,
+    [
+      check("name", "Name of bill is req")
+        .not()
+        .isEmpty(),
+      check("amount", "Amount is required w/o $")
+        .isDecimal()
+        .not()
+        .isEmpty(),
+      check("due", "Due day is required")
+        .not()
+        .isEmpty()
+    ]
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+    } else {
+      const { name, amount, due } = req.body;
+      try {
+        //Create new bill
+        const bill = new Bill({
+          name: name,
+          amount: amount,
+          due: due
+        });
+
+        //save to db and return
+        await bill.save();
+
+        res.json(bill);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error");
+      }
+    }
+  }
+);
+
+/**
+ * @route GET api/bills
+ * @desc Get bills
+ */
+app.get("/api/bills", auth, async (req, res) => {
+  try {
+    const bills = await Bill.find().sort({ due: -1 });
+
+    res.json(bills);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
+/**
+ * @route GET api/bills/:id
+ * @desc Get Bill
+ */
+app.get("/api/bills/:id", auth, async (req, res) => {
+  try {
+    const bill = await Bill.findById(req.params.id);
+
+    //make sure the bill was found
+    if (!bill) {
+      return res.status(404).json({ msg: "Bill not found" });
+    }
+
+    res.json(bill);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
+/**
+ * @route DELETE api/bills/:id
+ * @desc Delete a post
+ */
+app.delete("/api/bills/:id", auth, async (req, res) => {
+  try {
+    const bill = await Bill.findById(req.params.id);
+
+    // make sure the bill was found
+    if (!bill) {
+      return res.status(404).json({ msg: "Post not found" });
+    }
+
+    await bill.remove();
+
+    res.json({ msg: "Bill removed" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
+/**
+ * @route PUT api/bills/:id
+ * @desc Update a bill
+ */
+app.put("/api/bills/:id", auth, async (req, res) => {
+  try {
+    const { name, amount, due } = req.body;
+    const bill = await Bill.findById(req.params.id);
+
+    // Make sure the bill was found
+    if (!bill) {
+      return res.status(404).json({ msg: "Bill not found" });
+    }
+
+    // Update the bill and return
+    bill.name = name || bill.name;
+    bill.amount = amount || bill.amount;
+    bill.due = due || bill.due;
+
+    await bill.save();
+
+    res.json(bill);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
 
 //connection listener
 const port = 5000;
