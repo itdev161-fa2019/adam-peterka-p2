@@ -7,24 +7,13 @@ import View from "./components/View/View";
 
 class App extends React.Component {
   state = {
-    data: null,
+    bills: [],
     token: null,
     income: null,
     monthYear: null
   };
 
   componentDidMount() {
-    axios
-      .get("http://localhost:5000")
-      .then(response => {
-        this.setState({
-          data: response.data
-        });
-      })
-      .catch(error => {
-        console.error(`Error fetching data: ${error}`);
-      });
-
     this.authenticateIncome();
   }
 
@@ -34,7 +23,7 @@ class App extends React.Component {
     if (!token) {
       localStorage.removeItem("income");
       localStorage.removeItem("monthYear");
-      this.setState({ income: null, weeklyIncome: null });
+      this.setState({ income: null, monthYear: null });
     }
 
     if (token) {
@@ -48,16 +37,44 @@ class App extends React.Component {
         .then(response => {
           localStorage.setItem("income", response.data.weeklyIncome);
           localStorage.setItem("monthYear", response.data.monthYear);
-          this.setState({
-            income: response.data.weeklyIncome,
-            monthYear: response.data.monthYear
-          });
+          this.setState(
+            {
+              income: response.data.weeklyIncome,
+              monthYear: response.data.monthYear,
+              token: token
+            },
+            () => {
+              this.loadData();
+            }
+          );
         })
         .catch(error => {
           localStorage.removeItem("income");
           localStorage.removeItem("monthYear");
-          this.setState({ income: null, weeklyIncome: null });
+          this.setState({ income: null, monthYear: null });
           console.error(`Error viewing in: ${error}`);
+        });
+    }
+  };
+
+  loadData = () => {
+    const { token } = this.state;
+
+    if (token) {
+      const config = {
+        headers: {
+          "x-auth-token": token
+        }
+      };
+      axios
+        .get("http://localhost:5000/api/bills", config)
+        .then(response => {
+          this.setState({
+            bills: response.data
+          });
+        })
+        .catch(error => {
+          console.error(`Error fetching data: ${error}`);
         });
     }
   };
@@ -103,7 +120,7 @@ class App extends React.Component {
   };
 
   render() {
-    let { income, monthYear, data } = this.state;
+    let { income, monthYear, bills } = this.state;
     const authProps = {
       authenticateIncome: this.authenticateIncome,
       deleteIncome: this.deleteIncome
@@ -136,9 +153,17 @@ class App extends React.Component {
             <Route exact path="/">
               {income ? (
                 <React.Fragment>
-                  <div>Month and Year: {monthYear}.</div>
+                  <div>Month and Year: {monthYear}</div>
                   <div>Weekly Income: {income}</div>
-                  <div>{data}</div>
+                  <div>
+                    {bills.map(bill => (
+                      <div key={bill._id}>
+                        <h1>{bill.name}</h1>
+                        <h2>Amount: ${bill.amount}</h2>
+                        <h3>Day of Month Due: {bill.due}</h3>
+                      </div>
+                    ))}
+                  </div>
                 </React.Fragment>
               ) : (
                 <React.Fragment>
