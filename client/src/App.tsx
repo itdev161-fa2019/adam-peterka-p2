@@ -4,10 +4,13 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import "./App.css";
 import Create from "./components/Create/Create";
 import View from "./components/View/View";
+import BillList from "./components/BillList/BillList";
+import Bill from "./components/Bill/Bill";
 
 class App extends React.Component {
   state = {
     bills: [],
+    bill: null,
     token: null,
     income: null,
     monthYear: null
@@ -79,6 +82,13 @@ class App extends React.Component {
     }
   };
 
+  viewBill = bill => {
+    console.log(`view ${bill.name}`);
+    this.setState({
+      bill: bill
+    });
+  };
+
   deleteIncome = () => {
     const token = localStorage.getItem("token");
 
@@ -120,7 +130,7 @@ class App extends React.Component {
   };
 
   render() {
-    let { income, monthYear, bills } = this.state;
+    let { income, monthYear, bills, bill } = this.state;
     const authProps = {
       authenticateIncome: this.authenticateIncome,
       deleteIncome: this.deleteIncome
@@ -150,28 +160,23 @@ class App extends React.Component {
             </ul>
           </header>
           <main>
-            <Route exact path="/">
-              {income ? (
-                <React.Fragment>
-                  <div>Month and Year: {monthYear}</div>
-                  <div>Weekly Income: {income}</div>
-                  <div>
-                    {bills.map(bill => (
-                      <div key={bill._id}>
-                        <h1>{bill.name}</h1>
-                        <h2>Amount: ${bill.amount}</h2>
-                        <h3>Day of Month Due: {bill.due}</h3>
-                      </div>
-                    ))}
-                  </div>
-                </React.Fragment>
-              ) : (
-                <React.Fragment>
-                  Please Create a new Income or View an existing
-                </React.Fragment>
-              )}
-            </Route>
             <Switch>
+              <Route exact path="/">
+                {income ? (
+                  <React.Fragment>
+                    <div>Month and Year: {monthYear}</div>
+                    <div>Weekly Income: {income}</div>
+                    <BillList bills={bills} clickBill={this.viewBill} />
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    Please Create a new Income or View an existing
+                  </React.Fragment>
+                )}
+              </Route>
+              <Route path="/bills/:billId">
+                <Bill bill={bill} />
+              </Route>
               <Route
                 exact
                 path="/create"

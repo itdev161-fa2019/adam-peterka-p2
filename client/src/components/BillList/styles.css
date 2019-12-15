@@ -1,0 +1,10 @@
+.billListItem {
+  padding: 10px;
+  border: solid 1px transparent;
+}
+
+.billListItem:hover {
+  background-color: #eeeeee;
+  border-color: #aaaaaa;
+  cursor: pointer;
+}
