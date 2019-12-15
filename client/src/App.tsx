@@ -122,6 +122,30 @@ class App extends React.Component {
     }
   };
 
+  deleteBill = bill => {
+    const { token } = this.state;
+
+    if (token) {
+      const config = {
+        headers: {
+          "x-auth-token": token
+        }
+      };
+
+      axios
+        .delete(`http://localhost:5000/api/bills/${bill._id}`, config)
+        .then(response => {
+          const newBills = this.state.bills.filter(b => b._id !== bill._id);
+          this.setState({
+            bills: [...newBills]
+          });
+        })
+        .catch(error => {
+          console.error(`Error deleting post: ${error}`);
+        });
+    }
+  };
+
   closeView = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("income");
@@ -166,7 +190,11 @@ class App extends React.Component {
                   <React.Fragment>
                     <div>Month and Year: {monthYear}</div>
                     <div>Weekly Income: {income}</div>
-                    <BillList bills={bills} clickBill={this.viewBill} />
+                    <BillList
+                      bills={bills}
+                      clickBill={this.viewBill}
+                      deleteBill={this.deleteBill}
+                    />
                   </React.Fragment>
                 ) : (
                   <React.Fragment>

@@ -4,7 +4,7 @@ import slugify from "slugify";
 import "./styles.css";
 
 const BillListItem = props => {
-  const { bill, clickBill } = props;
+  const { bill, clickBill, deleteBill } = props;
   const history = useHistory();
 
   const handleClickBill = bill => {
@@ -20,6 +20,9 @@ const BillListItem = props => {
         <h2>{bill.name}</h2>
         <h3>Amount: ${bill.amount}</h3>
         <h4>Day of Month Due: {bill.due}</h4>
+      </div>
+      <div className="billControls">
+        <button onClick={() => deleteBill(bill)}>Delete</button>
       </div>
     </div>
   );
