@@ -209,6 +209,21 @@ app.post(
   }
 );
 
+/**
+ * @route GET api/bills
+ * @desc Get bills
+ */
+app.get("/api/bills", auth, async (req, res) => {
+  try {
+    const bills = await Bill.find().sort({ due: -1 });
+
+    res.json(bills);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
 //connection listener
 const port = 5000;
 app.listen(port, () => console.log(`Express server running on port ${port}`));
