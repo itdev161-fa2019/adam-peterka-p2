@@ -3,12 +3,12 @@ import axios from "axios";
 import { useHistory } from "react-router-dom";
 import "./styles.css";
 
-const CreateBill = ({ onBillCreated }) => {
+const EditBill = ({ token, bill, onBillUpdated }) => {
   let history = useHistory();
   const [billData, setBillData] = useState({
-    name: "",
-    amount: "",
-    due: ""
+    name: bill.name,
+    amount: bill.amount,
+    due: bill.due
   });
   const { name, amount, due } = billData;
 
@@ -21,9 +21,9 @@ const CreateBill = ({ onBillCreated }) => {
     });
   };
 
-  const create = async () => {
+  const update = async () => {
     if (!name || !amount || !due) {
-      console.log("All fields are required");
+      console.log("Fields are all required");
     } else {
       const newBill = {
         name: name,
@@ -39,26 +39,26 @@ const CreateBill = ({ onBillCreated }) => {
           }
         };
 
-        //Create bill
+        //Create the bill
         const body = JSON.stringify(newBill);
-        const res = await axios.post(
-          "http://localhost:5000/api/bills",
+        const res = await axios.put(
+          `http://localhost:5000/api/bills/${bill._id}`,
           body,
           config
         );
 
         //Call the handler and redirect
-        onBillCreated(res.data);
+        onBillUpdated(res.data);
         history.push("/");
       } catch (error) {
-        console.error(`Error creating bill: ${error.response.data}`);
+        console.error(`Error creating post: ${error.response.data}`);
       }
     }
   };
 
   return (
     <div className="form-container">
-      <h2>Create New Bill</h2>
+      <h2>Edit Bill</h2>
       <input
         name="name"
         type="text"
@@ -80,9 +80,9 @@ const CreateBill = ({ onBillCreated }) => {
         value={due}
         onChange={e => onChange(e)}
       />
-      <button onClick={() => create()}>Submit</button>
+      <button onClick={() => update()}>Submit</button>
     </div>
   );
 };
 
-export default CreateBill;
+export default EditBill;
