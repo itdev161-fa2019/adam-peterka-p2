@@ -5,6 +5,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import config from "config";
 import Income from "./models/Income";
+import Bill from "./models/Bill";
 import auth from "./middleware/auth";
 
 // init express app
@@ -155,6 +156,54 @@ app.post(
         returnToken(income, res);
       } catch (error) {
         res.status(500).send("Server Error");
+      }
+    }
+  }
+);
+
+// Bill endpoints
+/**
+ * @route POST api/bills
+ * @desc create Bill
+ */
+app.post(
+  "/api/bills",
+  [
+    auth,
+    [
+      check("name", "Name of bill is req")
+        .not()
+        .isEmpty(),
+      check("amount", "Amount is required w/o $")
+        .isDecimal()
+        .not()
+        .isEmpty(),
+      check("due", "Due day is required")
+        .not()
+        .isEmpty()
+    ]
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+    } else {
+      const { name, amount, due } = req.body;
+      try {
+        //Create new bill
+        const bill = new Bill({
+          name: name,
+          amount: amount,
+          due: due
+        });
+
+        //save to db and return
+        await bill.save();
+
+        res.json(bill);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error");
       }
     }
   }
