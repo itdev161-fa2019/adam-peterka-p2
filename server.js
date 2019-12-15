@@ -46,6 +46,7 @@ app.get("/", (req, res) =>
   res.send("http get request sent to root api endpoint")
 );
 
+// Income Enpoints
 /**
  * @route POST api/incomes
  * @desc Create Income
@@ -223,6 +224,31 @@ app.get("/api/bills", auth, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
+/**
+ * @route GET api/bills/:id
+ * @desc Get Bill
+ */
+app.get("/api/bills/:id", auth, async (req, res) => {
+  try {
+    const bill = await Bill.findById(req.params.id);
+
+    //make sure the bill was found
+    if (!bill) {
+      return res.status(404).json({ msg: "Bill not found" });
+    }
+
+    res.json(bill);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
+/**
+ * @route DELETE api/bills/:id
+ * @desc Delete a post
+ */
 
 //connection listener
 const port = 5000;
