@@ -249,6 +249,23 @@ app.get("/api/bills/:id", auth, async (req, res) => {
  * @route DELETE api/bills/:id
  * @desc Delete a post
  */
+app.delete("/api/bills/:id", auth, async (req, res) => {
+  try {
+    const bill = await Bill.findById(req.params.id);
+
+    // make sure the bill was found
+    if (!bill) {
+      return res.status(404).json({ msg: "Post not found" });
+    }
+
+    await bill.remove();
+
+    res.json({ msg: "Bill removed" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
 
 //connection listener
 const port = 5000;
