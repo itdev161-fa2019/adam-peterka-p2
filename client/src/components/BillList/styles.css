@@ -1,0 +1,23 @@
+.billListItem {
+  padding: 5px;
+  border: solid 1px transparent;
+}
+
+.billListItem:hover {
+  background-color: #eeeeee;
+  border-color: #aaaaaa;
+  cursor: pointer;
+}
+
+.billControls {
+  margin: 10px 0 10px 0;
+}
+
+.billControls button {
+  margin-left: 10px;
+}
+
+.billListItem h2,
+h4 {
+  margin: 5px;
+}
