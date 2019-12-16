@@ -6,6 +6,8 @@ import Create from "./components/Create/Create";
 import View from "./components/View/View";
 import BillList from "./components/BillList/BillList";
 import Bill from "./components/Bill/Bill";
+import CreateBill from "./components/Bill/CreateBill";
+import EditBill from "./components/Bill/EditBill";
 
 class App extends React.Component {
   state = {
@@ -13,7 +15,8 @@ class App extends React.Component {
     bill: null,
     token: null,
     income: null,
-    monthYear: null
+    monthYear: null,
+    totalIncome: null
   };
 
   componentDidMount() {
@@ -75,6 +78,7 @@ class App extends React.Component {
           this.setState({
             bills: response.data
           });
+          this.addBillAmounts();
         })
         .catch(error => {
           console.error(`Error fetching data: ${error}`);
@@ -139,11 +143,58 @@ class App extends React.Component {
           this.setState({
             bills: [...newBills]
           });
+
+          this.addBillAmounts();
         })
         .catch(error => {
           console.error(`Error deleting post: ${error}`);
         });
     }
+  };
+
+  editBill = bill => {
+    this.setState({
+      bill: bill
+    });
+  };
+
+  onBillCreated = bill => {
+    const newBills = [...this.state.bills, bill];
+
+    this.setState({
+      bills: newBills
+    });
+
+    this.addBillAmounts();
+  };
+
+  onBillUpdated = bill => {
+    console.log("updated bill: ", bill);
+    const newBills = [...this.state.bills];
+    const index = newBills.findIndex(b => b._id === bill._id);
+
+    newBills[index] = bill;
+
+    this.setState({
+      bills: newBills
+    });
+
+    this.addBillAmounts();
+  };
+
+  addBillAmounts = () => {
+    const { bills, income } = this.state;
+    let totalBills = 0;
+    let totalIncome = income * 4;
+    bills.forEach(bill => {
+      totalBills = totalBills + bill.amount;
+    });
+
+    totalIncome = totalIncome - totalBills;
+
+    this.setState({
+      totalIncome: totalIncome
+    });
   };
 
   closeView = () => {
@@ -154,7 +205,7 @@ class App extends React.Component {
   };
 
   render() {
-    let { income, monthYear, bills, bill } = this.state;
+    let { income, monthYear, bills, bill, token, totalIncome } = this.state;
     const authProps = {
       authenticateIncome: this.authenticateIncome,
       deleteIncome: this.deleteIncome
@@ -170,7 +221,11 @@ class App extends React.Component {
                 <Link to="/">Home</Link>
               </li>
               <li>
-                <Link to="/create">Create New</Link>
+                {income ? (
+                  <Link to="/new-bill">New Bill</Link>
+                ) : (
+                  <Link to="/create">Create Income</Link>
+                )}
               </li>
               <li>
                 {income ? (
@@ -188,12 +243,14 @@ class App extends React.Component {
               <Route exact path="/">
                 {income ? (
                   <React.Fragment>
-                    <div>Month and Year: {monthYear}</div>
-                    <div>Weekly Income: {income}</div>
+                    <h2>Month And Year: {monthYear}</h2>
+                    <h2>Monthly Income: ${income * 4}</h2>
+                    <h2>Income After Expenses: ${totalIncome}</h2>
                     <BillList
                       bills={bills}
                       clickBill={this.viewBill}
                       deleteBill={this.deleteBill}
+                      editBill={this.editBill}
                     />
                   </React.Fragment>
                 ) : (
@@ -204,6 +261,16 @@ class App extends React.Component {
               </Route>
               <Route path="/bills/:billId">
                 <Bill bill={bill} />
+              </Route>
+              <Route path="/new-bill">
+                <CreateBill token={token} onBillCreated={this.onBillCreated} />
+              </Route>
+              <Route path="/edit-bill/:billId">
+                <EditBill
+                  token={token}
+                  bill={bill}
+                  onBillUpdated={this.onBillUpdated}
+                />
               </Route>
               <Route
                 exact

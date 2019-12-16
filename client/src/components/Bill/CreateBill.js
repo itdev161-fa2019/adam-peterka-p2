@@ -3,7 +3,7 @@ import axios from "axios";
 import { useHistory } from "react-router-dom";
 import "./styles.css";
 
-const CreateBill = ({ onBillCreated }) => {
+const CreateBill = ({ token, onBillCreated }) => {
   let history = useHistory();
   const [billData, setBillData] = useState({
     name: "",

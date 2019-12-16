@@ -40,3 +40,7 @@
 main {
   margin: 30px;
 }
+
+main h2 {
+  font-size: 1.25em;
+}
