@@ -11,7 +11,7 @@ const Bill = props => {
 
   return (
     <div>
-      <h3>{bill.name}</h3>
+      <h2>{bill.name}</h2>
       <h4>Amount: ${bill.amount}</h4>
       <h4>Day of Month Due: {bill.due}</h4>
       <button onClick={() => goBack()}>Back</button>
